@@ -6,5 +6,6 @@ export { Link } from './sdk/virtual.ts';
 export type { Filter, FilterExpression, custom } from './sdk/listObject.ts';
 export { AttributeType } from './sdk/structuredObject.ts';
 export { FileUploader } from './sdk/fileUploader.ts';
+export { type FileInfo } from './sdk/files.ts';
 
 export { VERSION } from './version.ts';
