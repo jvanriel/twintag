@@ -39,10 +39,9 @@ class Environment {
             return
 
         if (typeof window !== 'undefined'
-            && window?.origin !== undefined
-            && window?.location?.hostname !== "localhost"
-            && window?.location?.hostname !== "127.0.0.1") {
-            this._host = window.origin;
+            && window.location?.hostname !== "localhost"
+            && window.location?.hostname !== "127.0.0.1") {
+            this._host = window.location.origin;
         }
 
         const base = new URL(this._host);

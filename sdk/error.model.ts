@@ -1,7 +1,7 @@
 export class TwintagErrorValue {
-	status :number   
-	title  :string 
-	detail :string 
+	status = 0  
+	title = '' 
+	detail= '' 
 }
 export class TwintagError extends Error {
     constructor(message:string, errors?: TwintagErrorValue[], name?: string, stack?: string) {

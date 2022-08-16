@@ -1,6 +1,6 @@
-import { Access } from './project';
-import { Client } from './client';
-import { environment } from './environment';
+import { Access } from './project.ts';
+import { Client } from './client.ts';
+import { environment } from './environment.ts';
 
 /**
  * StructuredObject class represents an object of a project.
@@ -16,7 +16,7 @@ export class StructuredObject {
   keyProperty?: string;
   access?: Access;
 
-  private _useCaching: boolean = false;
+  private _useCaching = false;
 
   private client: Client;
 
@@ -247,7 +247,7 @@ export class StructuredObject {
     langAttributes: languageAttributes,
     parent: string
   ): Promise<Attribute[]> {
-    let resAttributes: Attribute[] = [];
+    const resAttributes: Attribute[] = [];
     if (langAttributes == null) {
       return [];
     }

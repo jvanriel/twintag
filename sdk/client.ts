@@ -1,5 +1,5 @@
-import { VERSION } from "../version";
-import {TwintagErrorValue, TwintagError} from "./error.model"
+import { VERSION } from "../version.ts";
+import {TwintagErrorValue, TwintagError} from "./error.model.ts"
 /**
  * @internal
  */

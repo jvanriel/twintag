@@ -1,8 +1,9 @@
-import { createBagInternal, View, EmailRequest } from './view';
-import { Client } from './client';
-import { environment } from './environment';
-import { StructuredObject } from './structuredObject';
-import { listObject } from './listObject';
+// deno-lint-ignore-file
+import { createBagInternal, View, EmailRequest } from './view.ts';
+import { Client } from './client.ts';
+import { environment } from './environment.ts';
+import { StructuredObject } from './structuredObject.ts';
+import { listObject } from './listObject.ts';
 
 /**
  * The project class allows you to interact with a ZAZA Enterprise project.
@@ -19,8 +20,8 @@ export class Project {
    */
   readonly apiKey: string;
   private client: Client;
-  private projectId: string = '';
-  private _useCaching: boolean = false;
+  private projectId = '';
+  private _useCaching = false;
 
   /**
    * Create a project
@@ -91,7 +92,7 @@ export class Project {
    */
   public async newObject(
     objectName: string,
-    objectAPIName: string = "",
+    objectAPIName = "",
     isList?: boolean,
     isGlobal?: boolean,
     keyProperty?: string,
@@ -284,7 +285,7 @@ export class Project {
    */
   public async sendToSubscribers<T>(request: EmailRequest): Promise<T> {
 
-    const client = await this.client;
+    const client = this.client;
     const url = environment.adminHost + '/api/v1/subscribers/send';
     const [res, err] = await client.post<T>(url, request, { headers: { 'Content-Type': 'application/json' } });
     if (err) {

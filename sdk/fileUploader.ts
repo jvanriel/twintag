@@ -1,5 +1,5 @@
-import { Client } from './client';
-import { environment } from './environment';
+import { Client } from './client.ts';
+import { environment } from './environment.ts';
 
 export class FileUploader {
   signedUrl: string;
@@ -42,7 +42,7 @@ export class FileUploader {
    *
    */
   public async Upload(file: File): Promise<void> {
-    this.uploadFile(file);
+    await this.uploadFile(file);
   }
 
   /**
@@ -53,9 +53,8 @@ export class FileUploader {
    * @internal
    */
   private async uploadFile(file: File) {
-    let s3resp = await this.uploadToS3<any>(this.signedUrl, file);
-
-    let endresp = await this.endUpload(this.instanceQid, this.fileQid);
+    await this.uploadToS3(this.signedUrl, file);
+    await this.endUpload(this.instanceQid, this.fileQid);
   }
 
   /**
@@ -67,7 +66,7 @@ export class FileUploader {
    * @internal
    */
   private async uploadToS3<T>(uploadUrl: string, file: File) {
-    let body = await file.arrayBuffer();
+    const body = await file.arrayBuffer();
     return this._client.do<T>(
       uploadUrl,
       { method: 'put', body: body },
@@ -93,7 +92,7 @@ export class FileUploader {
       fileContext: fileContext,
     };
 
-    this._client.put(url, body);
+    await this._client.put(url, body);
   }
 
   private fileUrl(): string {

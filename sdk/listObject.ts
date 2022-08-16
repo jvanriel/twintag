@@ -1,7 +1,9 @@
-import { environment } from './environment';
-import { Client } from './client';
-import { Parser } from './parser';
-import { FileUploader } from './fileUploader';
+// deno-lint-ignore-file
+import { environment } from './environment.ts';
+import { Client } from './client.ts';
+import { Parser } from './parser.ts';
+import { FileUploader } from './fileUploader.ts';
+
 
 /**
  * A list object class represents data from a list type of object.
@@ -99,7 +101,7 @@ export class listObject {
   public async insert<T>(data: T): Promise<T> {
     const url = this.dataUrl();
 
-    const fileTypes = this.parseForFileType(data);
+    const fileTypes = this.parseForFileType<T>(data);
 
     const [res, err] = await this._client.put<T>(url, data, {
       headers: { 'Content-Type': 'application/json' },
@@ -119,8 +121,8 @@ export class listObject {
    *
    * @internal
    */
-  private parseForFileType<T>(data: T): {}[] {
-    let fileType: {}[] = [];
+  private parseForFileType<T>(data: any): {}[] {
+    const fileType: {}[] = [];
     Object.entries(data).forEach(([key, value]) => {
       //Ideally vaidate if the value is of File type
       //Since at the time of development File polyfill was not injected to epsilon, checking for instance of File is not possible
@@ -131,8 +133,8 @@ export class listObject {
           file: data[key],
         });
         data[key] = {
-          name: value.name,
-          size: value.size,
+          name: (value as any).name,
+          size: (value as any).size,
         };
       }
     });
@@ -147,7 +149,7 @@ export class listObject {
    *
    * @internal
    */
-  private async parseResponse(resp, fileTypes: {}[]) {
+  private async parseResponse(resp:any, fileTypes: {}[]) {
     fileTypes.forEach(async (obj: any) => {
       let fileResp = resp[obj.apiName];
       resp[obj.apiName] = new FileUploader(

@@ -1,16 +1,16 @@
-import { environment } from './environment';
-import { Client } from './client';
-import { Project } from './project';
-import { FileInfo } from './files';
-import { VirtualFile } from './virtual';
-import { listObject } from './listObject';
-import { Parser } from './parser';
+import { environment } from './environment.ts';
+import { Client } from './client.ts';
+import { Project } from './project.ts';
+import { FileInfo } from './files.ts';
+import { VirtualFile } from './virtual.ts';
+import { listObject } from './listObject.ts';
+import { Parser } from './parser.ts';
 
 /**
  * CreateBag creates a free bag without an association to an Enterprise project.
  */
 export async function createBag(qid?: string): Promise<View> {
-  return createBagInternal(new Client(), undefined, qid);
+  return await createBagInternal(new Client(), undefined, qid);
 }
 
 /**

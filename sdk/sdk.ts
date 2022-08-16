@@ -4,7 +4,7 @@
  * @packageDocumentation
  */
 
-import { environment } from './environment'
+import { environment } from './environment.ts'
 
 
 /**
