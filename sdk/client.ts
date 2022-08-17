@@ -42,16 +42,19 @@ export class Client {
             if (!resp.body) {
                 return [<T>{}, undefined];
             }
-            return [<T><unknown>resp.body, undefined]
+            // JVR: We need to read or cancel the body to avoid a resource leak
+            const text = await resp.text()
+            const json = text.length > 0 ? JSON.parse(text) : {}
+            return [<T><unknown>json, undefined]
         }
 
         try {
             const res = <T>await resp.json();
             return [res, undefined]
         } catch (error) {
-            let err = new TwintagErrorValue()
+            const err = new TwintagErrorValue()
             err.title = 'failed to parse response'
-            err.detail = 'something went wrong when parsing response'
+            err.detail = `something went wrong when parsing response; ${error}`
             return [<T>{}, this.CreateTwintagError([err])];
         }
     }
@@ -70,6 +73,7 @@ export class Client {
 
     public async put<T>(
         path: string,
+        // deno-lint-ignore no-explicit-any
         body: any,
         args?: RequestInit,
         skipAuth?: boolean // TODO: Deprecate
@@ -86,6 +90,7 @@ export class Client {
 
     public async post<T>(
         path: string,
+        // deno-lint-ignore no-explicit-any
         body: any,
         args?: RequestInit,
         skipAuth?: boolean
@@ -102,6 +107,7 @@ export class Client {
 
     public async delete<T>(
         path: string,
+        // deno-lint-ignore no-explicit-any
         body?: any,
         args?: RequestInit
     ): Promise<[T, TwintagError | undefined]> {
@@ -115,6 +121,7 @@ export class Client {
         return await this.do<T>(path, args, true);
     }
 
+    // deno-lint-ignore no-explicit-any
     private CreateTwintagError(err:any) {
         if(err && err.errors && err.errors.length > 0 ){
             return new TwintagError(err.errors[0].detail, err.errors[0],err.errors[0].title )

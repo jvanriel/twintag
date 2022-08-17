@@ -117,5 +117,6 @@ export interface definitionData {
  */
 export interface definition {
     specversion: string;
+    // deno-lint-ignore no-explicit-any
     definition: any;
 }

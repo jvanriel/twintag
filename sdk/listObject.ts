@@ -251,7 +251,7 @@ export class listObject {
    *
    * Above input will filter "strCol" for "test" and "numCol" for values less than 10
    *
-   * @param filter: {@link Filter}
+   * @param f: {@link Filter}
    * @param lang: optional language value. Allowed inputs are "all" or any language defined in project languages. If no value is passed, then project's default language will be used for returning data
    * @category ListObject
    */
@@ -323,7 +323,7 @@ export class listObject {
   /**
    * Private method to get filter query for match method.
    *
-   * @param Filter
+   * @param f
    *
    * @internal
    */
