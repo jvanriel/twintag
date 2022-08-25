@@ -33,3 +33,18 @@ export function setAdminHost(host: string): void {
 export function setCachingHost(host: string): void {
     environment.cachingHost = host;
 }  
+
+/**
+ * setCachingHost allows you to overwrite the ZAZA caching domain.
+ * 
+ * @param logLevel
+ * * none: no logging
+* single: shows a single line with method, path and status
+* headers: shows request method, path headers and response status and headers
+* body: same as headers but also shows request/response body when body is json
+ * 
+ * @hidden
+ */
+ export function setLogLevel(logLevel: 'none'|'single'|'headers'|'body'): void {
+  environment.logLevel = logLevel;
+}  

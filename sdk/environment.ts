@@ -4,6 +4,7 @@ class Environment {
     private _adminHost = '';
     private _cachingHost = '';
     public useCaching = false;
+    public _logLevel: 'none'|'single'|'headers'|'body' = 'none'
 
     private autoDetect = true;
 
@@ -52,6 +53,10 @@ class Environment {
         this._cachingHost = `${base.protocol}//${cachingSub}${base.host}`
 
         this.autoDetect = false;
+    }
+
+    public set logLevel(logLevel:'none'|'single'|'headers'|'body') {
+        this._logLevel = logLevel
     }
 }
 /**
