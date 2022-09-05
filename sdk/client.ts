@@ -69,7 +69,7 @@ export class Client {
         }
     }
 
-    private logResponse(req:Request, rsp:Response, text = '') {
+    private logResponse(req:Request, rsp:Response, text?:string) {
         switch (environment._logLevel) {
             case 'none':
                 return
@@ -83,7 +83,9 @@ export class Client {
             case 'body': {
                 console.log(rsp.status, rsp.statusText, `${Date.now()-this.start}ms`)
                 this.logHeaders(req.headers)
-                console.log(text)
+                if (text) {
+                    console.log(text)
+                }
                 break
             } 
         }        
@@ -164,11 +166,8 @@ export class Client {
                     this.logResponse(request, response)
                     return [<T>{}, undefined];
                 }
-                // We need to read or cancel the body to avoid a resource leak
-                const text = await response.text()
-                this.logResponse(request, response, text)
-                const json = text.length > 0 ? JSON.parse(text) : {}
-                return [<T><unknown>json, undefined]
+                this.logResponse(request, response)
+                return [<T><unknown>response.body, undefined]
             }
 
             try {

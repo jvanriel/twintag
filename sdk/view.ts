@@ -252,7 +252,10 @@ export class View {
     }
 
     // Upload
-    const [, uploadErr] = await client.do<void>(startResp.uploadUrl, { method: 'PUT', body: f }, true, true);
+    const [uploadstream, uploadErr] = await client.do<ReadableStream<Uint8Array>>(startResp.uploadUrl, { method: 'PUT', body: f }, true, true);
+    if (uploadstream && uploadstream instanceof ReadableStream) {
+      await uploadstream.cancel() // to avoid leaks
+    }
     if (uploadErr) {
       uploadErr.setMessage(`failed to upload file to twintag`)
       throw uploadErr
@@ -261,7 +264,10 @@ export class View {
     // End
     url = await this.fileURLUpload('files', startResp.metafest.fileQid, 'end');
 
-    const [, endErr] = await client.do<void>(url, { method: 'PUT', body: '{}' }, true);
+    const [endStream, endErr] = await client.do<ReadableStream<Uint8Array>>(url, { method: 'PUT', body: '{}' }, true);
+    if (endStream && endStream instanceof ReadableStream) {
+      await endStream.cancel() // to avoid leaks
+    }
     if (endErr) {
       endErr.setMessage(`failed to complete the file upload to twintag`)
       throw endErr
@@ -428,7 +434,10 @@ export class View {
     const url = this.fileURL('files');
 
     const client = await this.client();
-    const [, err] = await client.delete<void>(url, [file.FileQid.toString()]);
+    const [stream, err] = await client.delete<ReadableStream<Uint8Array>>(url, [file.FileQid.toString()]);
+    if (stream && stream instanceof ReadableStream) {
+      await stream.cancel() // to avoid leaks
+    }
     if (err) {
       err.setMessage(`failed to delete file from twintag`)
       throw err
@@ -444,7 +453,10 @@ export class View {
     const url = this.viewURL();
 
     const client = await this.client();
-    const [, err] = await client.delete<void>(url);
+    const [stream, err] = await client.delete<ReadableStream<Uint8Array>>(url);
+    if (stream && stream instanceof ReadableStream) {
+      await stream.cancel() // to avoid leaks
+    }
     if (err) {
       err.setMessage(`failed to delete twintag`)
       throw err
@@ -468,7 +480,11 @@ export class View {
     const url = this.twintagURL();
 
     const client = await this.client();
-    const [, err] = await client.delete<void>(url);
+    const [stream, err] = await client.delete<ReadableStream<Uint8Array>>(url);
+    if (stream) {
+      await stream.cancel() // to avoid leaks
+    }
+
     if (err) {
       err.setMessage(`failed to delete project twintag`)
       throw err
