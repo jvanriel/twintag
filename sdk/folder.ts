@@ -14,6 +14,7 @@ class FileInfo {
   #FileQid: string
   #Parent: string|undefined
   #FileMode: string
+  type:'file'|'folder'|'unknown'
   name: string
   size: number
   time: Date
@@ -25,6 +26,17 @@ class FileInfo {
     this.name = fi.Name
     this.size = fi.Size
     this.time = fi.MTime
+    switch (fi.FileMode) {
+      case '420':
+        this.type = 'file'
+        break
+      case '493':
+        this.type = 'folder'
+        break
+      default:
+        this.type = 'unknown'
+        break
+    }
   }
 
   toTwintagFileInfo() {
@@ -39,56 +51,12 @@ class FileInfo {
   }
 }
 
-class FolderInfo {
-  #fileQid: string
-  #parent: string
-  #fileMode: number
-  name: string
-  time: Date
-
-  constructor(fi:TwintagFolderInfo, parentQid:string) {
-    this.#fileQid = fi.fileQid
-    this.#fileMode = fi.fileMode
-    this.#parent = parentQid
-    this.name = fi.fileName
-    this.time = fi.modTime
-  }
-
-  toTwintagFileInfo() {
-    return {
-      FileQid: this.#fileQid,
-      Parent: this.#parent,
-      FileMode: this.#fileMode.toString(),
-      Name: this.name,
-      Size: 0,
-      MTime: this.time
-    } as TwintagFileInfo
-  }
-}
-
 const convert_fileinfo = (fi:TwintagFileInfo) => {
   return new FileInfo(fi)
 }
 
 const convert_fileinfo_array = (fis:TwintagFileInfo[]) => {
-  return fis.filter(fi => fi.FileMode === '420').map(fi => {return convert_fileinfo(fi)}) 
-}
-
-const convert_twintagfolderinfo_folderinfo = (fi:TwintagFolderInfo, parentQid:string) => {
-  return new FolderInfo(fi, parentQid)
-}
-
-const convert_twintagfileinfo_to_folderinfo = (fi:TwintagFileInfo, parentQid:string) => {
-  return new FolderInfo({
-    fileQid: fi.FileQid,
-    fileMode: parseInt(fi.FileMode),
-    fileName: fi.Name,
-    modTime: fi.MTime
-  } as TwintagFolderInfo, parentQid)
-}
-
-const convert_twintagfileinfo_to_folderinfo_array = (fis:TwintagFileInfo[], parentQid:string) => {
-  return fis.filter(fi => fi.FileMode === '493').map(fi => {return convert_twintagfileinfo_to_folderinfo(fi, parentQid)}) 
+  return fis.map(fi => {return convert_fileinfo(fi)}) 
 }
 
 export class Folder {
@@ -104,7 +72,7 @@ export class Folder {
     this.name = name
   }
 
-  async listFiles():Promise<FileInfo[]>{
+  async listItems():Promise<FileInfo[]>{
     if (this.bag === null) {
       throw Error('bag list; bag not created')
     }
@@ -112,12 +80,14 @@ export class Folder {
     return convert_fileinfo_array(list)
   }
 
-  async listFolders():Promise<FolderInfo[]>{
-    if (this.bag === null) {
-      throw Error('bag list; bag not created')
-    }
-    const list = await this.bag.list('')
-    return convert_twintagfileinfo_to_folderinfo_array(list, this.#parentQid)
+  async listFiles():Promise<FileInfo[]>{
+    const items = await this.listItems()
+    return items.filter(f => f.type === 'file')
+  }
+
+  async listFolders():Promise<FileInfo[]>{
+    const items = await this.listItems()
+    return items.filter(f => f.type === 'folder')
   }
 
   async findFile(name:string):Promise<FileInfo|null>{
@@ -126,7 +96,7 @@ export class Folder {
     return found === undefined ? null : found
   }
 
-  async findFolder(name:string):Promise<FolderInfo|null>{
+  async findFolder(name:string):Promise<FileInfo|null>{
     const list = await this.listFolders()
     const found = list.find(f => f.name === name)
     return found === undefined ? null : found
@@ -265,7 +235,14 @@ export class Folder {
 
   async createFolder(name:string) {
     const folderInfo = await this.bag.addFolder<TwintagFolderInfo>(name, this.#parentQid)
-    return convert_twintagfolderinfo_folderinfo(folderInfo, this.#parentQid)
+    return new FileInfo({
+      FileQid: folderInfo.fileQid,
+      Parent: this.#parentQid,
+      Name: folderInfo.fileName,
+      Size: 0,
+      MTime: folderInfo.modTime,
+      FileMode: folderInfo.fileMode.toString(),
+    } as TwintagFileInfo)
   }
 
   async removeFolder(name:string) {
