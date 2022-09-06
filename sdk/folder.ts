@@ -62,13 +62,13 @@ const convert_fileinfo_array = (fis:TwintagFileInfo[]) => {
 export class Folder {
   twt:Twintag
   bag:View
-  #parentQid: string
+  #folderQid: string
   name:string
 
-  constructor(twt:Twintag, bag:View, name:string, parentQid: string) {
+  constructor(twt:Twintag, bag:View, name:string, folderQid: string) {
     this.twt = twt
     this.bag = bag
-    this.#parentQid = parentQid
+    this.#folderQid = folderQid
     this.name = name
   }
 
@@ -76,7 +76,7 @@ export class Folder {
     if (this.bag === null) {
       throw Error('bag list; bag not created')
     }
-    const list = await this.bag.list('')
+    const list = await this.bag.list(this.#folderQid)
     return convert_fileinfo_array(list)
   }
 
@@ -121,7 +121,24 @@ export class Folder {
     if (this.bag === null) {
       throw Error('bag read; bag not created')
     }
-    return await this.bag.download(name)
+    if (this.#folderQid === '') {
+      return await this.bag.download(name)
+    } else {
+      const url = await this.downloadUrl(name)
+      const rsp = await fetch(url)
+      if (rsp.status === 200) {
+        if (rsp.body) {
+          return rsp.body
+        } else {
+          throw Error('missing body')
+         }
+      } else {
+        if (rsp.body) {
+          rsp.body.cancel()
+        }
+        throw Error(`name '${name}' status ${rsp.status}`)
+      }
+    }
   }
 
   async readAsBuffer(name:string):Promise<Buffer>{
@@ -153,6 +170,15 @@ export class Folder {
     return new File([blob], name)
   }
 
+  async downloadUrl(fileName:string):Promise<string>{
+    const folderList = await this.bag.list(this.#folderQid)
+    const fileInfo = folderList.find(fi => fi.Name === fileName)
+    if (!fileInfo) {
+      throw Error(`Not Found; file '${fileName}'`)
+    }
+    return this.twt.Url(`/api/v1/views/${this.bag.qid}/files/${fileInfo.FileQid}`)
+  }
+
   /*
     File writers
   */
@@ -161,7 +187,7 @@ export class Folder {
     if (this.bag === null) {
       throw Error('bag write; bag not created')
     }
-    const fi = await this.bag.upload(file, file.name)
+    const fi = await this.bag.upload(file, file.name, this.#folderQid === '' ? undefined : this.#folderQid)
     return convert_fileinfo(fi)
   }
 
@@ -212,7 +238,7 @@ export class Folder {
       return new Folder(this.twt, this.bag, '/', '')
     }
 
-    let parentQid = ''
+    let folderQid = ''
     let folderName = ''
 
     const parts = path.split("/").slice(1)
@@ -220,24 +246,22 @@ export class Folder {
  
     for (const name of parts) {
       //console.log('NAME', name)
-      const found = await this.#findFolderQidInParent(parentQid, name)
+      const found = await this.#findFolderQidInParent(folderQid, name)
       if (found === null) {
         return null
       }
-      parentQid = found
+      folderQid = found
       folderName = name
-      //console.log('PARENTQID', parts, 'folderName', folderName)
     }
 
-    return new Folder(this.twt, this.bag,  folderName, parentQid)
-
+    return new Folder(this.twt, this.bag, folderName, folderQid)
   }
 
   async createFolder(name:string) {
-    const folderInfo = await this.bag.addFolder<TwintagFolderInfo>(name, this.#parentQid)
+    const folderInfo = await this.bag.addFolder<TwintagFolderInfo>(name, this.#folderQid)
     return new FileInfo({
       FileQid: folderInfo.fileQid,
-      Parent: this.#parentQid,
+      Parent: this.#folderQid,
       Name: folderInfo.fileName,
       Size: 0,
       MTime: folderInfo.modTime,

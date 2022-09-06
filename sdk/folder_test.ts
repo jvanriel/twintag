@@ -57,6 +57,12 @@ describe("Folders", ()=>{
     t.assertEquals(json["foo"], "bar")
   })
 
+  it("fetches object downloadUrl from root" ,async () => {
+    const url = await rootFolder?.downloadUrl(filename)
+    t.assert(url)
+    t.assert(url.length > 0)
+  })
+
   it("removes object from root folder" ,async () => {
     await rootFolder?.removeFile(filename)
   })
@@ -104,6 +110,12 @@ describe("Folders", ()=>{
     const json = await subFolder?.readAsJson(filename)
     t.assert(json)
     t.assertEquals(json["hello"], "world")
+  })
+
+  it("fetches object downloadUrl from subfolder" ,async () => {
+    const url = await subFolder?.downloadUrl(filename)
+    t.assert(url)
+    t.assert(url.length > 0)
   })
 
   it("removes object from subfolder" ,async () => {
