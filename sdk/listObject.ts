@@ -219,7 +219,7 @@ export class listObject {
    *
    * @category ListObject
    */
-  public async delete<T>(id: string, dataScope = ''): Promise<void> {
+  public async delete<T>(id: string, dataScope = ''): Promise<void> { // TWINTAG: What is T doing here?
     const url = this.dataUrl();
 
     const req = {
@@ -227,9 +227,16 @@ export class listObject {
       $dataScope: dataScope
     };
 
-    const [, err] = await this._client.delete<T>(url, req, {
+    // const [, err] = await this._client.delete<T>(url, req, {
+    //   headers: { 'Content-Type': 'application/json' },
+    // });
+    const [stream, err] = await this._client.delete<ReadableStream<Uint8Array>>(url, req, {
       headers: { 'Content-Type': 'application/json' },
     });
+    if (stream) {
+      stream.cancel()
+    }
+
     if (err) {
       err.setMessage(`failed to delete data: ${err.message}`);
       throw err;

@@ -233,7 +233,7 @@ export class View {
    *
    * @category File management
    */
-  public async upload(f: File, name?: string, parent?: string): Promise<FileInfo> {
+  public async upload(f: File, name?: string, parent?: string): Promise<FileInfo> { // TWINTAG: Why do we still need this 3-step process?
     // Start
     const uploadStartReq: uploadRequest = {
       mode: 420,
