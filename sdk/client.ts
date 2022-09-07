@@ -127,6 +127,7 @@ export class Client {
     ): Promise<[T, TwintagError | undefined]> {
         this.start = Date.now()
 
+        //console.log('CLIENT','PATH', path, 'SKIPPARSE', skipParse)
 
         //Inject authorization for our host
         if (this.token && !skipAuth) {
@@ -173,8 +174,12 @@ export class Client {
             try {
                 const json = await response.json()
                 this.logResponse(request, response, json)
+                
                 const res = <T>json;
-                return [res, undefined]
+                // return [res, undefined]
+                const result = [res, undefined] as [T, TwintagError | undefined]
+                //console.log('CLIENT', 'RESULT', result[1], typeof result[1], result[1] instanceof Object, 'TRUTHY', result[1] ? 'true' : 'false')
+                return result
             } catch (error) {
                 const err = new TwintagErrorValue()
                 err.title = 'failed to parse response'

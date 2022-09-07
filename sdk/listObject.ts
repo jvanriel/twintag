@@ -65,7 +65,7 @@ export class listObject {
    *
    * @category ListObject
    */
-  public async get<T>(id: string, lang?: string): Promise<T> {
+   public async get<T>(id: string, lang?: string): Promise<T> {
     let url = '';
 
     if (this._useCaching) {
@@ -82,7 +82,49 @@ export class listObject {
       ? `${url.indexOf('?') < 0 ? '?' : '&'}language=${lang == 'all' ? '*' : lang
       }`
       : '';
+
+    const [res, err] = await this._client.get<T>(url); 
+    if (err) { 
+      err.setMessage(`failed to get data: ${err.message}`);
+      throw err;
+    }
+
+    return Parser.parseSpecialTypes(res);
+  }
+
+  public async get2<T>(id: string, lang?: string): Promise<T|null> {
+    // TWINTAG: is id always a record $qid or can this be a value of a key column
+    let url = '';
+
+    if (this._useCaching) {
+      if (this.viewId == '') {
+        url = `${environment.cachingHost}/data/${this.objectApiName}/${id}?schemaScope=${this._projectId}`;
+      } else {
+        url = `${environment.cachingHost}/api/v1/views/${this.viewId}/data/${this.objectApiName}/${id}`;
+      }
+    } else {
+      url = this.dataUrl(id);
+    }
+
+    url += lang
+      ? `${url.indexOf('?') < 0 ? '?' : '&'}language=${lang == 'all' ? '*' : lang
+      }`
+      : '';
+
+    // TWINTAG:
+    // In case the record does not exist in the table res = {} and err is TRUTHY, i.e an object of type 'undefined'
+    // So this in case err is defined (instead of undefined) was throwing on object 'throw undefined'
+    // we need a better way to handle not found (404) and return null for the object
+    // console.log('LISTOBJECT', 'URL', url)
+
     const [res, err] = await this._client.get<T>(url);
+    const isEmpty = Object.keys(res).length === 0
+   // console.log('LISTOBJECT', 'ISEMPTY', isEmpty, 'ERR', err, 'TYPEOF err', typeof err, 'TRUTHY', err ? 'true' : 'false' )
+ 
+    if (isEmpty) {
+      return null
+    }
+
     if (err) {
       err.setMessage(`failed to get data: ${err.message}`);
       throw err;
