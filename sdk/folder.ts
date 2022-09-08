@@ -77,7 +77,10 @@ export class Folder {
       throw Error('bag list; bag not created')
     }
     const list = await this.bag.list(this.#folderQid)
-    return convert_fileinfo_array(list)
+    if (Array.isArray(list)) {// TWINTAG: may return { is:..., state: 'deleted'} 
+      return convert_fileinfo_array(list)
+    }
+    return []
   }
 
   async listFiles():Promise<FileInfo[]>{
@@ -96,10 +99,24 @@ export class Folder {
     return found === undefined ? null : found
   }
 
-  async findFolder(name:string):Promise<FileInfo|null>{
+  async findFolderInfo(name:string):Promise<FileInfo|null>{
     const list = await this.listFolders()
     const found = list.find(f => f.name === name)
     return found === undefined ? null : found
+  }
+
+  async findFolder(name:string):Promise<Folder|null>{
+    const list = await this.bag.list(this.#folderQid)
+    if (Array.isArray(list)) { // TWINTAG: may return { is:..., state: 'deleted'} 
+      const found = list.find(f => f.Name === name)
+      if (!found) {
+        return null
+      } else {
+        return new Folder(this.twt, this.bag, name, found.FileQid)
+      }
+    } else {
+      return null
+    }
   }
 
   async removeFile(name:string):Promise<void>{
@@ -270,7 +287,7 @@ export class Folder {
   }
 
   async removeFolder(name:string) {
-    const found = await this.findFolder(name)
+    const found = await this.findFolderInfo(name)
     if (found) {
       const fileInfo = found.toTwintagFileInfo()
       await this.bag.delete(fileInfo)
