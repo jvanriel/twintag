@@ -19,15 +19,17 @@ export class Twintag {
   protocol: string
   project:Project
   view:View
+  templateViewQid:string
 
-  constructor(projectApiKey: string, templateViewerQid:string, subdomain:string) {
+  constructor(projectApiKey: string, templateViewQid:string, subdomain:string) {
     validateProjectKey(projectApiKey)
-    validateTemplateViewerQid(templateViewerQid)
+    validateTemplateViewerQid(templateViewQid)
     validateSubdomain(subdomain)
+    this.templateViewQid = templateViewQid
     this.subdomain = subdomain
     this.protocol = 'https://'
     this.project = new Project(projectApiKey)
-    this.view = new View(templateViewerQid)
+    this.view = new View(templateViewQid)
     this.view._setConfig({project: this.project}) 
   }
 
@@ -41,7 +43,11 @@ export class Twintag {
     if (!path.startsWith('/')) {
       throw Error(`bad path; have '${path}'; must start with '/'`)
     }
-    return `https://${this.subdomain}.twintag.io${path}`
+    if (path === '/') {
+      return `https://${this.subdomain}.twintag.io/${this.templateViewQid}${path}`
+    } else {
+      return `https://${this.subdomain}.twintag.io${path}`
+    }
   }
 
   setHost(host:string) {setHost(host) }
