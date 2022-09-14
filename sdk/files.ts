@@ -6,4 +6,6 @@ export interface FileInfo {
     Size: number;
     MTime: Date;
     FileMode: string;
+    TemplateBagId?: string;
+
 }

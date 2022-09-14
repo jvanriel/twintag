@@ -2,6 +2,7 @@ import { Twintag } from "./twintag.ts";
 import { View } from "./view.ts";
 import { FileInfo as TwintagFileInfo } from "./files.ts";
 import { readerFromStreamReader, Buffer } from "./deps.ts";
+import { iterateReader } from "https://deno.land/std@0.153.0/streams/conversion.ts";
 
 type TwintagFolderInfo = {
   fileQid: string;
@@ -14,12 +15,14 @@ class FileInfo {
   #FileQid: string
   #Parent: string|undefined
   #FileMode: string
+  #TemplateBagId: string
   type:'file'|'folder'|'unknown'
   name: string
   size: number
   time: Date
 
   constructor(fi:TwintagFileInfo) {
+    this.#TemplateBagId = fi.TemplateBagId ?? ''
     this.#FileQid = fi.FileQid
     this.#Parent = fi.Parent
     this.#FileMode = fi.FileMode
@@ -46,7 +49,8 @@ class FileInfo {
       FileMode: this.#FileMode,
       Name: this.name,
       Size: this.size,
-      MTime: this.time
+      MTime: this.time,
+      TemplateBagId: this.#TemplateBagId,
     } as TwintagFileInfo
   }
 }
@@ -66,6 +70,7 @@ export class Folder {
   name:string
 
   constructor(twt:Twintag, bag:View, name:string, folderQid: string) {
+    //console.log('NAME', name, 'FOLDERQID', folderQid)
     this.twt = twt
     this.bag = bag
     this.#folderQid = folderQid
@@ -76,9 +81,13 @@ export class Folder {
     if (this.bag === null) {
       throw Error('bag list; bag not created')
     }
+    //console.log('FOLDER', this.name, 'FOLDERQID', this.#folderQid)
     const list = await this.bag.list(this.#folderQid)
     if (Array.isArray(list)) {// TWINTAG: may return { is:..., state: 'deleted'} 
-      return convert_fileinfo_array(list)
+      // TWINTAG: this.bag.list('') also gives files in subfolders!
+      const filtered = list.filter(f => f.Parent == this.#folderQid)
+      //console.log('FILTERED', filtered)
+      return convert_fileinfo_array(filtered)
     }
     return []
   }
@@ -143,6 +152,7 @@ export class Folder {
     } else {
       const url = await this.downloadUrl(name)
       const rsp = await fetch(url)
+
       if (rsp.status === 200) {
         if (rsp.body) {
           return rsp.body
@@ -194,6 +204,15 @@ export class Folder {
       throw Error(`Not Found; file '${fileName}'`)
     }
     return this.twt.Url(`/api/v1/views/${this.bag.qid}/files/${fileInfo.FileQid}`)
+  }
+
+  async downloadUrlFromTemplateBag(fileName:string):Promise<string>{
+    const folderList = await this.bag.list(this.#folderQid)
+    const fileInfo = folderList.find(fi => fi.Name === fileName)
+    if (!fileInfo) {
+      throw Error(`Not Found; file '${fileName}'`)
+    }
+    return this.twt.Url(`/api/v1/views/${fileInfo.TemplateBagId}/files/${fileInfo.FileQid}`)
   }
 
   /*
