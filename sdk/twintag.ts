@@ -44,7 +44,7 @@ export class Twintag {
       throw Error(`bad path; have '${path}'; must start with '/'`)
     }
     if (path === '/') {
-      return `https://${this.subdomain}.twintag.io/${this.templateViewQid}${path}`
+      return `https://${this.subdomain}.twintag.io/${this.templateViewQid}${path}/index.html`
     } else {
       return `https://${this.subdomain}.twintag.io${path}`
     }

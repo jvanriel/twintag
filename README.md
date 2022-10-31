@@ -14,3 +14,6 @@ Set client logLevel via environment.setLogLevel function
 
 
 
+### 0.1.13
+
+When path is / also add /index.html next to qid to fix broken autorun.
