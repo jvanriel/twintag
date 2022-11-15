@@ -143,7 +143,7 @@ export class listObject {
   public async insert<T>(data: T): Promise<T> {
     const url = this.dataUrl();
 
-    const fileTypes = this.parseForFileType<T>(data);
+    const fileTypes = this.parseForSpecialTypes(data);
 
     const [res, err] = await this._client.put<T>(url, data, {
       headers: { 'Content-Type': 'application/json' },
@@ -156,33 +156,36 @@ export class listObject {
     return await this.parseResponse(res, fileTypes);
   }
 
-  /**
+    /**
    * Private method to parse file types in request.
-   *
+   * Ideally vaidate if the value is of File type. Since at the time of development File polyfill was not injected * to epsilon, checking for instance of File is not possible. adding null check for value deletion support
    * @param data
    *
    * @internal
    */
-  private parseForFileType<T>(data: any): {}[] {
-    const fileType: {}[] = [];
-    Object.entries(data).forEach(([key, value]) => {
-      //Ideally vaidate if the value is of File type
-      //Since at the time of development File polyfill was not injected to epsilon, checking for instance of File is not possible
-      //adding null check for value deletion support
-      if (value && typeof value === 'object') {
-        fileType.push({
-          apiName: key,
-          file: data[key],
-        });
-        data[key] = {
-          name: (value as any).name,
-          size: (value as any).size,
-        };
-      }
-    });
+     private parseForSpecialTypes<T>(data: any): {}[] {
+      let fileType: {}[] = [];
+      Object.entries(data).forEach(([key, value]) => {
+        if (value instanceof Date) {
+          const tzoffset = new Date().getTimezoneOffset() * 60000; // offset in milliseconds
+          const dateTimeInMilliSeconds = new Date(value).getTime();
+          data[key] = new Date(dateTimeInMilliSeconds - tzoffset).toISOString().split('T').join(' ').split('.')[0];
+        } else if (value && typeof value === 'object') {
+          fileType.push({
+            apiName: key,
+            file: data[key],
+          });
+          data[key] = {
+            name: (value as any).name,
+            size: (value as any).size,
+            fileContent: (value as any).fileContent
+          };
+        }
+      });
+  
+      return fileType;
+    }
 
-    return fileType;
-  }
 
   /**
    * Private method to parse the insert/update response and assign FileUploader to file type columns
@@ -241,7 +244,7 @@ export class listObject {
   public async update<T>(data: T): Promise<T> {
     const url = this.dataUrl();
 
-    const fileTypes = this.parseForFileType(data);
+    const fileTypes = this.parseForSpecialTypes(data);
 
     const [res, err] = await this._client.put<T>(url, data, {
       headers: { 'Content-Type': 'application/json' },
