@@ -163,8 +163,9 @@ export class Client {
   
             if (!response.ok) {
                 // custom API error
-                const json = await response.json();
-                this.logResponse(request, response, json)
+                const text = await response.text();
+                this.logResponse(request, response, text)
+                const json = JSON.parse(text)
                 const err = <[TwintagErrorValue]>json;
                 return [<T>{}, this.CreateTwintagError(err)];
             }
@@ -179,8 +180,9 @@ export class Client {
             }
 
             try {
-                const json = await response.json()
-                this.logResponse(request, response, json)
+                const text = await response.text();
+                this.logResponse(request, response, text)
+                const json = JSON.parse(text)
                 
                 const res = <T>json;
                 // return [res, undefined]
