@@ -52,6 +52,6 @@ export class Twintag {
 
   setHost(host:string) {setHost(host) }
   setAdminHost(host:string) {setAdminHost(host) }
-  setLogLevel(logLevel:'none'|'single'|'headers'|'body') {setLogLevel(logLevel) }
+  setLogLevel(logLevel:'none'|'single'|'headers'|'body') { return setLogLevel(logLevel) }
 
 }

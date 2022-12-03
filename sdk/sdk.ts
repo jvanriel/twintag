@@ -42,9 +42,12 @@ export function setCachingHost(host: string): void {
 * single: shows a single line with method, path and status
 * headers: shows request method, path headers and response status and headers
 * body: same as headers but also shows request/response body when body is json
+* return the previous level
  * 
  * @hidden
  */
- export function setLogLevel(logLevel: 'none'|'single'|'headers'|'body'): void {
+ export function setLogLevel(logLevel: 'none'|'single'|'headers'|'body'): 'none'|'single'|'headers'|'body' {
+  const prev = environment.logLevel
   environment.logLevel = logLevel;
+  return prev
 }  

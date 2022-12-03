@@ -58,13 +58,20 @@ export class Client {
             case 'body': {
                 console.log(req.method, req.url.toString())
                 this.logHeaders(req.headers)
-                if (this.hasLoggableRequestBody(req)) {
+                if (req.body) {
+                    const tee = req.body!.tee()
+                    console.log('REQ', tee[0])
+                    return tee[1]
+                } 
+                return null
+
+                // if (this.hasLoggableRequestBody(req)) {
                     const tee = req.body!.tee()
                     console.log(tee[0])
                     return tee[1]
-                } else {
-                    return null
-                }
+                // } else {
+                //     return null
+                // }
             } 
         }
     }
@@ -84,7 +91,7 @@ export class Client {
                 console.log(rsp.status, rsp.statusText, `${Date.now()-this.start}ms`)
                 this.logHeaders(req.headers)
                 if (text) {
-                    console.log(text)
+                    console.log('RSP', text)
                 }
                 break
             } 
@@ -164,10 +171,10 @@ export class Client {
 
             if (skipParse) {
                 if (!response.body) {
-                    this.logResponse(request, response)
+                    // this.logResponse(request, response)
                     return [<T>{}, undefined];
                 }
-                this.logResponse(request, response)
+                //this.logResponse(request, response)
                 return [<T><unknown>response.body, undefined]
             }
 
