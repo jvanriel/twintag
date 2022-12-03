@@ -49,5 +49,5 @@ export function setCachingHost(host: string): void {
  export function setLogLevel(logLevel: 'none'|'single'|'headers'|'body'): 'none'|'single'|'headers'|'body' {
   const prev = environment.logLevel
   environment.logLevel = logLevel;
-  return prev
+  return prev === undefined ? 'none' : prev
 }  
